@@ -2,7 +2,7 @@
 // The transformation first applies scale, then rotation, and finally translation.
 // The given rotation value is in degrees.
 function GetTransform(positionX, positionY, rotation, scale) {
-    // First, we transform the rotation degree into radians
+    // First, we transform the rotation degrees into radians
     const rad = rotation * Math.PI / 180;
 
     const cos = Math.cos(rad);
@@ -44,7 +44,7 @@ function GetTransform(positionX, positionY, rotation, scale) {
     // 
     // T * R * S = T * (R * S)
     //           = T * ApplyTransform(scale_matrix, rotation_matrix)
-    //           = ApplyTransform(ApplyTransform(scale_matrix, rotation_matrix))
+    //           = ApplyTransform(ApplyTransform(scale_matrix, rotation_matrix), translation_matrix)
     return ApplyTransform(ApplyTransform(scale_matrix, rotation_matrix), translation_matrix);
 
     // We observe that we could have just written the matrix
@@ -69,8 +69,8 @@ function ApplyTransform(trans1, trans2) {
     for (let r = 0; r < 3; r++) { // row index
         for (let c = 0; c < 3; c++) { // col index
             // This loop will compute the scalar product
-            // between the r-th row of trans1, and the 
-            // c-th column of trans2, given that both 
+            // between the r-th row of trans2, and the 
+            // c-th column of trans1, given that both 
             // matrices are in column-major order
             for (let z = 0; z < 3; z++) {
                 output[r + c * 3] += trans2[r + 3 * z] * trans1[c * 3 + z]

@@ -50,9 +50,9 @@ function GetTransform(positionX, positionY, rotation, scale) {
     // We observe that we could have just written the matrix
     //
     // return [
-    //      scale * c, scale * s, 0,
-    //     -scale * s, scale * c, 0,
-    //      positionX, positionY, 1
+    //      scale * cos, scale * sin, 0,
+    //     -scale * sin, scale * cos, 0,
+    //        positionX,   positionY, 1
     // ];
     //
     // which is just the precomputed version of the result.

@@ -1,3 +1,6 @@
+const swapYZ = false;
+const showTexture = true;
+
 // This function takes the projection matrix, the translation, and two rotation angles (in radians) as input arguments.
 // The two rotations are applied around x and y axes.
 // It returns the combined 4x4 transformation matrix as an array in column-major order.
@@ -30,7 +33,7 @@ function GetModelViewProjection(projectionMatrix, translationX, translationY, tr
          0,  0,   0,  1
     ];
 
-    let rot = MatrixMult(rotY, rotX);
+    let rot = MatrixMult(rotX, rotY);
     
     // let rot = [
     //     cY,        0,       -sY,      0,
@@ -39,6 +42,7 @@ function GetModelViewProjection(projectionMatrix, translationX, translationY, tr
     //     0,         0,       0,        1
     // ];
 
+    // TODO: implementa la rotazione per YZ swap
     let mvp = MatrixMult(projectionMatrix, MatrixMult(trans, rot));
 
     return mvp;
@@ -203,6 +207,7 @@ class MeshDrawer {
     // The argument is an HTML IMG element containing the texture data.
     setTexture(img) {
         this.tex = gl.createTexture();
+
         gl.bindTexture(gl.TEXTURE_2D, this.tex);
 
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);

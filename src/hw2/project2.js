@@ -1,6 +1,3 @@
-const swapYZ = false;
-const showTexture = true;
-
 // This function takes the projection matrix, the translation, and two rotation angles (in radians) as input arguments.
 // The two rotations are applied around x and y axes.
 // It returns the combined 4x4 transformation matrix as an array in column-major order.
@@ -58,17 +55,17 @@ const meshVS = `
     varying vec2 vTexCoord;     // pass to fragment shader
 
     void main() {
-        vec3 pos = aPosition;
+        // vec3 pos = aPosition;
 
         // Swap Y and Z if requested
-        if (uSwapYZ) {
-            float tmp = pos.y;
-            pos.y = pos.z;
-            pos.z = tmp;
-        }
+        // if (uSwapYZ) {
+        //     float tmp = pos.y;
+        //     pos.y = pos.z;
+        //     pos.z = tmp;
+        // }
 
         vTexCoord = aTexCoord;           // pass texcoord to fragment shader
-        gl_Position = uMVP * vec4(pos, 1.0);
+        gl_Position = uMVP * vec4(aPosition, 1.0);
     }
 `;
 
@@ -97,39 +94,41 @@ class MeshDrawer {
         this.vertBuffer = gl.createBuffer();
         this.texBuffer = gl.createBuffer();
 
-        // create vertex shader
-        let vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        gl.shaderSource(vertexShader, meshVS);
-        gl.compileShader(vertexShader);
+        this.program = InitShaderProgram(meshVS, meshFS);
 
-        // vertex shader handling
-        if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-            console.error("Vertex shader error: ", gl.getShaderInfoLog(vertexShader));
-            gl.deleteShader(vertexShader);
-        }
-
-        // create fragment shader
-        let fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        gl.shaderSource(fragmentShader, meshFS);
-        gl.compileShader(fragmentShader);
-
-        // fragment shader handling
-        if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-            console.error("Fragment shader error: ", gl.getShaderInfoLog(fragmentShader));
-            gl.deleteShader(fragmentShader);
-        }
-
-        // create program
-        this.program = gl.createProgram();
-
-        gl.attachShader(this.program, vertexShader);
-        gl.attachShader(this.program, fragmentShader);
-        gl.linkProgram(this.program);
-
-        if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
-            console.error("Program link error: ", gl.getProgramInfoLog(this.program));
-            gl.deleteProgram(this.program);
-        }
+        // // create vertex shader
+        // let vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        // gl.shaderSource(vertexShader, meshVS);
+        // gl.compileShader(vertexShader);
+        //
+        // // vertex shader handling
+        // if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+        //     console.error("Vertex shader error: ", gl.getShaderInfoLog(vertexShader));
+        //     gl.deleteShader(vertexShader);
+        // }
+        //
+        // // create fragment shader
+        // let fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        // gl.shaderSource(fragmentShader, meshFS);
+        // gl.compileShader(fragmentShader);
+        //
+        // // fragment shader handling
+        // if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+        //     console.error("Fragment shader error: ", gl.getShaderInfoLog(fragmentShader));
+        //     gl.deleteShader(fragmentShader);
+        // }
+        //
+        // // create program
+        // this.program = gl.createProgram();
+        //
+        // gl.attachShader(this.program, vertexShader);
+        // gl.attachShader(this.program, fragmentShader);
+        // gl.linkProgram(this.program);
+        //
+        // if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
+        //     console.error("Program link error: ", gl.getProgramInfoLog(this.program));
+        //     gl.deleteProgram(this.program);
+        // }
 
         // attributes locations
         this.aPosition = gl.getAttribLocation(this.program, "aPosition");
@@ -146,24 +145,30 @@ class MeshDrawer {
     // Similarly, every two consecutive elements in the texCoords array
     // form the texture coordinate of a vertex.
     // Note that this method can be called multiple times.
-    setMesh(vertPos, texCoords) {
+    setMesh(vertPosInput, texCoordsInput) {
         // bind the vertex buffer
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertPos), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertPosInput), gl.STATIC_DRAW);
+
+        // for (let i = 0; i < texCoordsInput.length; i++) {
+        //     texCoordsInput[i] /= 2;
+        // }
 
         // bind the texture buffer
         gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoordsInput), gl.STATIC_DRAW);
 
         // update the number of vertices
-        this.numVertices = vertPos.length / 3;
+        this.numVertices = vertPosInput.length / 3;
+
+        console.log(Math.min(...texCoordsInput), Math.max(...texCoordsInput));
+
     }
     
     // This method is called when the user changes the state of the
     // "Swap Y-Z Axes" checkbox. The argument is a boolean that indicates
     // if the checkbox is checked.
     swapYZ(swap) {
-        gl.clear(gl.COLOR_BUFFER_BIT)
         gl.useProgram(this.program);
 
         const uSwap = gl.getUniformLocation(this.program, "uSwapYZ");
@@ -173,24 +178,21 @@ class MeshDrawer {
     // This method is called to draw the triangular mesh.
     // The argument is the transformation matrix, the same matrix returned
     // by the GetModelViewProjection function above.
-    draw( trans )
-    {
-            // [TO-DO] Complete the WebGL initializations before drawing
-
+    draw(trans) {
             gl.clear(gl.COLOR_BUFFER_BIT)
             gl.useProgram(this.program);
 
-            // Positions
+            // TODO: comment
             gl.bindBuffer(gl.ARRAY_BUFFER, this.vertBuffer);
             gl.enableVertexAttribArray(this.aPosition);
             gl.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, false, 0, 0);
 
-            // Texture coords
+            // TODO: comment
             gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer);
             gl.enableVertexAttribArray(this.aTexCoord);
             gl.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, false, 0, 0);
 
-            // Set MVP matrix uniform
+            // TODO: comment
             const uMVP = gl.getUniformLocation(this.program, "uMVP");
             gl.uniformMatrix4fv(uMVP, false, trans);
 
@@ -200,7 +202,6 @@ class MeshDrawer {
 
             // Draw triangles
             gl.drawArrays(gl.TRIANGLES, 0, this.numVertices);
-
     }
     
     // This method is called to set the texture of the mesh.
@@ -218,14 +219,17 @@ class MeshDrawer {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
         // CLAMP_TO_EDGE required for non-power-of-two textures
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, this.tex);
 
         gl.useProgram(this.program);
         gl.uniform1i(gl.getUniformLocation(this.program, 'tex'), 0);
+
+        const useTexLoc = gl.getUniformLocation(this.program, "uUseTexture");
+        gl.uniform1i(useTexLoc, 1);
     }
 
     
@@ -245,4 +249,3 @@ class MeshDrawer {
     }
     
 }
-

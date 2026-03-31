@@ -151,21 +151,19 @@ class MeshDrawer {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
 
-        // [TO-DO] Update the contents of the vertex buffer objects.
+        // update the number of vertices
         this.numVertices = vertPos.length / 3;
     }
     
     // This method is called when the user changes the state of the
-    // "Swap Y-Z Axes" checkbox. 
-    // The argument is a boolean that indicates if the checkbox is checked.
-    swapYZ( swap )
-    {
-            // [TO-DO] Set the uniform parameter(s) of the vertex shader
+    // "Swap Y-Z Axes" checkbox. The argument is a boolean that indicates
+    // if the checkbox is checked.
+    swapYZ(swap) {
         gl.clear(gl.COLOR_BUFFER_BIT)
         gl.useProgram(this.program);
+
         const uSwap = gl.getUniformLocation(this.program, "uSwapYZ");
         gl.uniform1i(uSwap, swap ? 1 : 0);
-
     }
     
     // This method is called to draw the triangular mesh.

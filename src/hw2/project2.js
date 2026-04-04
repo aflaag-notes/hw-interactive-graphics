@@ -55,17 +55,17 @@ const meshVS = `
     varying vec2 vTexCoord;     // pass to fragment shader
 
     void main() {
-        // vec3 pos = aPosition;
+        vec3 pos = aPosition;
 
         // Swap Y and Z if requested
-        // if (uSwapYZ) {
-        //     float tmp = pos.y;
-        //     pos.y = pos.z;
-        //     pos.z = tmp;
-        // }
+        if (uSwapYZ) {
+            float tmp = pos.y;
+            pos.y = pos.z;
+            pos.z = tmp;
+        }
 
         vTexCoord = aTexCoord;           // pass texcoord to fragment shader
-        gl_Position = uMVP * vec4(aPosition, 1.0);
+        gl_Position = uMVP * vec4(pos, 1.0);
     }
 `;
 
@@ -134,6 +134,8 @@ class MeshDrawer {
         // set the swap check
         const swapYZLoc = gl.getUniformLocation(this.program, "uSwapYZ");
         gl.uniform1i(swapYZLoc, swap ? 1 : 0);
+        
+        console.log("swap bro");
     }
     
     // This method is called to draw the triangular mesh.
@@ -191,6 +193,8 @@ class MeshDrawer {
         // set the texture sampler to match the texture unit
         const samplerLoc = gl.getUniformLocation(this.program, 'tex')
         gl.uniform1i(samplerLoc, 0);
+
+        this.showTexture(true);
     }
 
     // This method is called when the user changes the state of the

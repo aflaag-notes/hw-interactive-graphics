@@ -82,6 +82,7 @@ const meshVS = `
         // pass 'aTexCoord' to fragment shader
         vTexCoord = aTexCoord;
 
+        // apply the MVP matrix
         gl_Position = MVP * vec4(pos, 1.0);
     }
 `;
@@ -108,14 +109,11 @@ const meshFS = `
 
 class MeshDrawer {
     constructor() {
-        // Buffers creation
         this.vertexBuffer = gl.createBuffer();
         this.textureBuffer = gl.createBuffer();
 
-        // Program creation
         this.program = InitShaderProgram(meshVS, meshFS);
 
-        // Saving attributes locations
         this.aPosition = gl.getAttribLocation(this.program, "aPosition");
         this.aTexCoord = gl.getAttribLocation(this.program, "aTexCoord");
         
@@ -140,11 +138,9 @@ class MeshDrawer {
     // form the texture coordinate of a vertex.
     // Note that this method can be called multiple times.
     setMesh(vertPos, texCoords) {
-        // Bind the vertex buffer
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertPos), gl.STATIC_DRAW);
 
-        // Bind the texture buffer
         gl.bindBuffer(gl.ARRAY_BUFFER, this.textureBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords), gl.STATIC_DRAW);
 
@@ -156,10 +152,8 @@ class MeshDrawer {
     // "Swap Y-Z Axes" checkbox. The argument is a boolean that indicates
     // if the checkbox is checked.
     swapYZ(swap) {
-        // Activate the shader program
         gl.useProgram(this.program);
 
-        // Set the swap flag
         const swapYZLoc = gl.getUniformLocation(this.program, "swapYZ");
         gl.uniform1i(swapYZLoc, swap ? 1 : 0);
     }
@@ -170,17 +164,14 @@ class MeshDrawer {
     draw(trans) {
         gl.useProgram(this.program);
 
-        // Bind the vertex buffer
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
         gl.enableVertexAttribArray(this.aPosition);
         gl.vertexAttribPointer(this.aPosition, 3, gl.FLOAT, false, 0, 0);
 
-        // Bind the texture buffer
         gl.bindBuffer(gl.ARRAY_BUFFER, this.textureBuffer);
         gl.enableVertexAttribArray(this.aTexCoord);
         gl.vertexAttribPointer(this.aTexCoord, 2, gl.FLOAT, false, 0, 0);
 
-        // Set the MVP matrix
         const MVPLoc = gl.getUniformLocation(this.program, "MVP");
         gl.uniformMatrix4fv(MVPLoc, false, trans);
 
@@ -226,10 +217,8 @@ class MeshDrawer {
     // "Show Texture" checkbox. The argument is a boolean that indicates
     // if the checkbox is checked.
     showTexture(show) {
-        // Activate the shader program
         gl.useProgram(this.program);
 
-        // Enable/disable the texture
         const useTextureLoc = gl.getUniformLocation(this.program, 'useTexture');
         gl.uniform1i(useTextureLoc, show ? 1 : 0);
     }

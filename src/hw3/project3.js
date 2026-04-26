@@ -58,46 +58,54 @@ function GetModelViewMatrix(translationX, translationY, translationZ, rotationX,
     return MV;
 }
 
-// ─── Vertex Shader ───────────────────────────────────────────────────────────
 const meshVS = `
-    attribute vec3 aPosition;
-    attribute vec2 aTexCoord;
-    attribute vec3 aNormals;
+    attribute vec3 aPosition;  // vertex position
+    attribute vec2 aTexCoord;  // vertex texture coordinate
+    attribute vec3 aNormals;   // normals
 
-    uniform mat4 MVP;
-    uniform mat4 MV;
-    uniform mat3 normalMatrix;
-    uniform bool swapYZ;
+    uniform mat4 MVP;          // model-view-projection matrix
+    uniform mat4 MV;           // model-view matrix
+    uniform mat3 normalMatrix; // normals matrix
+    uniform bool swapYZ;       // toggle swapping Y and Z axes
 
     varying vec2 vTexCoord;
-    varying vec3 vNormal;      // view-space normal
-    varying vec3 vPosition;    // view-space position
+    varying vec3 vNormal;
+    varying vec3 vPosition;
 
     void main() {
         vec3 pos = aPosition;
         vec3 nor = aNormals;
 
+        // swap Y and Z, if needed
         if (swapYZ) {
             float tmp;
-            tmp = pos.y; pos.y = pos.z; pos.z = tmp;
-            tmp = nor.y; nor.y = nor.z; nor.z = tmp;
-        }
 
+            // swap YZ pos
+            tmp = pos.y;
+            pos.y = pos.z;
+            pos.z = tmp;
+
+            // swap YZ normal
+            tmp = nor.y;
+            nor.y = nor.z;
+            nor.z = tmp;
+        }
+        
         vTexCoord = aTexCoord;
         vNormal   = normalize(normalMatrix * nor);
         vPosition = vec3(MV * vec4(pos, 1.0));
 
+        // apply the MVP matrix
         gl_Position = MVP * vec4(pos, 1.0);
     }
 `;
 
-// ─── Fragment Shader (Blinn-Phong) ────────────────────────────────────────────
 const meshFS = `
     precision mediump float;
 
-    uniform bool       useTexture;
-    uniform sampler2D  tex;
-    uniform vec3       lightDir;    // direction *toward* the light, view-space, normalised
+    uniform bool       useTexture; // toggle texture on/off
+    uniform sampler2D  tex;        // texture sampler
+    uniform vec3       lightDir;   // direction *toward* the light, view-space, normalized
     uniform float      shininess;
 
     varying vec2 vTexCoord;
@@ -105,30 +113,38 @@ const meshFS = `
     varying vec3 vPosition;
 
     void main() {
-        // Base (diffuse) colour
         vec4 baseColor = useTexture
             ? texture2D(tex, vTexCoord)
-            : vec4(1.0, gl_FragCoord.z * gl_FragCoord.z, 0.0, 1.0);
+            : vec4(1.0, 1.0, 1.0, 1.0);
 
         vec3 N = normalize(vNormal);
         vec3 L = normalize(lightDir);
-        vec3 V = normalize(-vPosition);   // toward camera (view-space origin)
-        vec3 H = normalize(L + V);        // Blinn-Phong half-vector
+        vec3 V = normalize(-vPosition); // toward camera
+        vec3 H = normalize(L + V);
 
         // Ambient
         float ambient  = 0.1;
-
         // Diffuse (Lambert)
         float diffuse  = max(dot(N, L), 0.0);
-
         // Specular (Blinn-Phong)
         float specular = (diffuse > 0.0)
             ? pow(max(dot(N, H), 0.0), shininess)
             : 0.0;
-
         vec3 lit = baseColor.rgb * (ambient + diffuse) + vec3(specular);
-
         gl_FragColor = vec4(lit, baseColor.a);
+
+        // // ambient
+        // vec3 ambient = 0.1 * baseColor.rgb;
+        //
+        // // diffuse (Lambert)
+        // float diff    = max(dot(N, L), 0.0);
+        // vec3  diffuse = diff * baseColor.rgb;
+        //
+        // // specular
+        // float spec     = (diff > 0.0) ? pow(max(dot(N, H), 0.0), shininess) : 0.0;
+        // vec3  specular = vec3(spec);
+        //
+        // gl_FragColor = vec4(ambient + diffuse + specular, baseColor.a);
     }
 `;
 

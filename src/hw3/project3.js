@@ -113,38 +113,26 @@ const meshFS = `
     varying vec3 vPosition;
 
     void main() {
-        vec4 baseColor = useTexture
+        vec4 Kd = useTexture
             ? texture2D(tex, vTexCoord)
-            : vec4(1.0, 1.0, 1.0, 1.0);
+            : vec4(1.0);
+
+        vec4 Ka = Kd;
+        vec4 Ks = vec4(1.0);
+        vec4 I = vec4(1.0);
 
         vec3 N = normalize(vNormal);
         vec3 L = normalize(lightDir);
         vec3 V = normalize(-vPosition); // toward camera
         vec3 H = normalize(L + V);
 
-        // Ambient
-        float ambient  = 0.1;
-        // Diffuse (Lambert)
-        float diffuse  = max(dot(N, L), 0.0);
-        // Specular (Blinn-Phong)
-        float specular = (diffuse > 0.0)
-            ? pow(max(dot(N, H), 0.0), shininess)
-            : 0.0;
-        vec3 lit = baseColor.rgb * (ambient + diffuse) + vec3(specular);
-        gl_FragColor = vec4(lit, baseColor.a);
+        float diff = max(dot(N, L), 0.0);
+        float spec = (diff > 0.0) ? pow(max(dot(N, H), 0.0), shininess) : 0.0;
+        float Ia = 0.1;
 
-        // // ambient
-        // vec3 ambient = 0.1 * baseColor.rgb;
-        //
-        // // diffuse (Lambert)
-        // float diff    = max(dot(N, L), 0.0);
-        // vec3  diffuse = diff * baseColor.rgb;
-        //
-        // // specular
-        // float spec     = (diff > 0.0) ? pow(max(dot(N, H), 0.0), shininess) : 0.0;
-        // vec3  specular = vec3(spec);
-        //
-        // gl_FragColor = vec4(ambient + diffuse + specular, baseColor.a);
+        vec3 lit = I.rgb * (diff * Kd.rgb + Ks.rgb * spec) + Ia * Ka.rgb;
+
+        gl_FragColor = vec4(lit, Kd.a);
     }
 `;
 
@@ -173,16 +161,11 @@ class MeshDrawer {
 
         // Boolean flags initialization
         gl.useProgram(this.program);
+
         gl.uniform1i(this.uSwapYZ,     0);
         gl.uniform1i(this.uUseTexture, 0);
         gl.uniform3f(this.uLightDir,   0.0, 1.0, 1.0);
         gl.uniform1f(this.uShininess,  32.0);
-
-        const swapYZLoc = gl.getUniformLocation(this.program, 'swapYZ');
-        gl.uniform1i(swapYZLoc, 0);
-
-        const useTextureLoc = gl.getUniformLocation(this.program, 'useTexture');
-        gl.uniform1i(useTextureLoc, 0);
     }
 	
     // This method is called every time the user opens an OBJ file.
@@ -215,8 +198,7 @@ class MeshDrawer {
     swapYZ(swap) {
         gl.useProgram(this.program);
 
-        const swapYZLoc = gl.getUniformLocation(this.program, "swapYZ");
-        gl.uniform1i(swapYZLoc, swap ? 1 : 0);
+        gl.uniform1i(this.uSwapYZ, swap ? 1 : 0);
     }
 	
 
@@ -277,8 +259,7 @@ class MeshDrawer {
         gl.useProgram(this.program);
 
         // Set the texture sampler to match the texture unit
-        const samplerLoc = gl.getUniformLocation(this.program, 'tex')
-        gl.uniform1i(samplerLoc, 0);
+        gl.uniform1i(this.uTex, 0);
 
         this.showTexture(true);
     }
@@ -289,19 +270,20 @@ class MeshDrawer {
     showTexture(show) {
         gl.useProgram(this.program);
 
-        const useTextureLoc = gl.getUniformLocation(this.program, 'useTexture');
-        gl.uniform1i(useTextureLoc, show ? 1 : 0);
+        gl.uniform1i(this.uUseTexture, show ? 1 : 0);
     }
 
     // This method is called to set the incoming light direction
     setLightDir(x, y, z) {
         gl.useProgram(this.program);
+
         gl.uniform3f(this.uLightDir, x, y, z);
     }
 
     // This method is called to set the shininess of the material
     setShininess(shininess) {
         gl.useProgram(this.program);
+
         gl.uniform1f(this.uShininess, shininess);
     }
 }

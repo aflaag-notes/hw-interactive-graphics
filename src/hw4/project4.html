@@ -346,7 +346,7 @@ const raytraceFS_secondary = `
 		{
 			Ray ray;
 			// ray.pos = pos; // original version
-			ray.pos = pos + nrm * 0.01;
+			ray.pos = pos + nrm * 0.01; // working version
 			ray.dir = reflect( -view, nrm );
 			vec4 reflection = RayTracer( ray );
 			color += mtl.k_s * reflection.rgb;

@@ -150,7 +150,7 @@ vec3 Shade( Material mtl, vec3 position, vec3 normal, vec3 view )
 		vec3 L          = normalize( toLight );
 
                 Ray shadowRay;
-                shadowRay.pos = position + n * 0.01;
+                shadowRay.pos = position + n * 0.01; // working version
                 shadowRay.dir = L;
 
 		HitInfo shadowHit;

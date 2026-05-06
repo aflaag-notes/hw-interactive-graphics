@@ -149,9 +149,9 @@ vec3 Shade( Material mtl, vec3 position, vec3 normal, vec3 view )
 		float lightDist = length( toLight );
 		vec3 L          = normalize( toLight );
 
-		Ray shadowRay;
-		shadowRay.pos = position + n * 1e-3;
-		shadowRay.dir = L;
+                Ray shadowRay;
+                shadowRay.pos = position + n * 0.01;
+                shadowRay.dir = L;
 
 		HitInfo shadowHit;
 		bool inShadow = false;
@@ -220,8 +220,8 @@ vec4 RayTracer( Ray ray )
 			vec3 n = dot(hit.normal, view) >= 0.0 ? hit.normal : -hit.normal;
 
 			Ray r;
-			r.pos = hit.position + n * 1e-3;
-			r.dir = reflect( -view, n );
+			r.pos = hit.position + n * 0.01;
+                        r.dir = reflect( -view, n );
 
 			HitInfo h;
 			if ( IntersectRay( h, r ) ) {

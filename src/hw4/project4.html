@@ -354,6 +354,32 @@ const raytraceFS_secondary = `
 	}
 `;
 
+<!-- const raytraceFS_secondary = ` -->
+<!-- 	uniform Material mtl; -->
+<!-- 	uniform vec3     campos; -->
+<!-- 	varying vec3     pos; -->
+<!-- 	varying vec3     normal; -->
+<!--         void main() -->
+<!-- { -->
+<!--     vec3 nrm = normalize( normal ); -->
+<!--     vec3 view = normalize( campos - pos ); -->
+<!---->
+<!--     // Ensure normal faces the viewer (critical for concave floor sphere) -->
+<!--     if ( dot(nrm, view) < 0.0 ) nrm = -nrm; -->
+<!---->
+<!--     vec3 color = Shade( mtl, pos, nrm, view ); -->
+<!--     if ( mtl.k_s.r > 0.0 || mtl.k_s.g > 0.0 || mtl.k_s.b > 0.0 )  -->
+<!--     { -->
+<!--         Ray ray; -->
+<!--         ray.pos = pos + nrm * 1e-3;   // <-- use corrected nrm for offset too -->
+<!--         ray.dir = reflect( -view, nrm ); -->
+<!--         vec4 reflection = RayTracer( ray ); -->
+<!--         color += mtl.k_s * reflection.rgb; -->
+<!--     } -->
+<!--     gl_FragColor = vec4( color, 1 ); -->
+<!-- } -->
+<!-- `; -->
+
 class RayTracer
 {
 	constructor()

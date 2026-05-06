@@ -345,8 +345,7 @@ const raytraceFS_secondary = `
 		if ( mtl.k_s.r > 0.0 || mtl.k_s.g > 0.0 || mtl.k_s.b > 0.0 ) 
 		{
 			Ray ray;
-			// ray.pos = pos; // original version
-			ray.pos = pos + nrm * 0.01; // working version
+			ray.pos = pos;
 			ray.dir = reflect( -view, nrm );
 			vec4 reflection = RayTracer( ray );
 			color += mtl.k_s * reflection.rgb;
@@ -443,15 +442,6 @@ class SecondaryRayTracer extends RayTracer
 		this.sphere.setTrans( mvp, [ trans.camToWorld[12], trans.camToWorld[13], trans.camToWorld[14] ] );
 		spheres.forEach( s => this.sphere.draw(s) );
 	}
-
-    // working version
-    <!-- draw( mvp, trans ) { -->
-    <!-- if ( ! this.prog ) return; -->
-    <!-- primaryRT.draw( trans );   // ray trace floor first -->
-    <!-- background.draw( trans ); -->
-    <!-- this.sphere.setTrans( mvp, [ trans.camToWorld[12], trans.camToWorld[13], trans.camToWorld[14] ] ); -->
-    <!-- spheres.slice(1).forEach( s => this.sphere.draw(s) ); -->
-    <!-- } -->
 }
 
 var screenQuad = {
@@ -969,3 +959,4 @@ canvas {
 </div>
 </body>
 </html>
+
